@@ -7,25 +7,25 @@
 
 struct my_stack {
 
-    long long int left_canary = 0;
+    canary_t left_canary = 0;
 
-    Elem_T* data = nullptr;
+    elem_t* data = nullptr;
 
     size_t capacity = default_stack_size;
 
-    const char* name_of_stack = nullptr;
+    char* name_of_stack = nullptr;
 
-    const char* name_of_func = nullptr;
+    char* name_of_func = nullptr;
 
-    const int count_of_line = 0;
+    int count_of_line = 0;
 
-    const char* file = nullptr;
+    char* file = nullptr;
 
     size_t Size = 0;
 
     bool is_stack_initialase = false;
 
-    long long int right_canary = 0;
+    canary_t right_canary = 0;
 };
 
 

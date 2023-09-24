@@ -2,9 +2,13 @@
 #include "enumerate_statuses.h"
 #include "struct_of_stack.h"
 #include "consts.h"
+#include "logs.h"
+#include "typedefine.h"
 #include <stdio.h>
+#include <stdlib.h>
 
-#define
+
+#define STACK_CTOR(stack) stack_ctor((stack), #stack, __LINE__, __func__, __FILE__)
 
 int main (){
 
@@ -12,14 +16,16 @@ int main (){
 
     struct my_stack Stack = {};
 
-    stack_ctor(&Stack);
+    STACK_CTOR(&Stack);
 
-    for (int i = 0; i < 100; i+=2){
+    printf("ok0\n");
+
+    for (int i = 0; i < 100; i+=10){
 
         stack_push(&Stack, &i);
     }
 
-    for (int i = 0; i < 100; i+=2){
+    for (int i = 0; i < 100; i+=10){
 
         int param = 0;
 

@@ -16,7 +16,7 @@ $(APP): $(OBJ)
 .PHONY : clean, run
 
 clean:
-	rm *.o out.txt
+	rm *.o logs.txt
 run:
 	@.\myStack.exe
 	  

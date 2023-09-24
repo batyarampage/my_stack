@@ -1,5 +1,7 @@
 #include "logs.h"
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
 
 FILE* LOG_FILE = nullptr;
 

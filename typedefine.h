@@ -4,12 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef int Elem_T;
+typedef int elem_t;
 
-typedef long long int canary;
+typedef long long int canary_t;
 
-#define canary_protection
-
-#define STACK_CTOR(Stack) stack_ctor ((Stack), #stack, __LINE__, __FUNC__, __FILE__);
+#define canary
 
 #endif
