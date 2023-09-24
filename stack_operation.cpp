@@ -31,7 +31,7 @@ statuses stack_ctor (struct my_stack* Stack, const char* name_stack1, int number
     canary_t* left_data_canary  = (canary_t*)((char*) data_of_Stack);
     canary_t* right_data_canary = (canary_t*)((char*) data_of_Stack + default_stack_size * sizeof(elem_t) + sizeof(canary_t));
 
-    printf("right_data_canary - left_data_canary = %d\n", right_data_canary - left_data_canary);
+    printf("right_data_canary - left_data_canary = %u\n", (size_t)right_data_canary - (size_t)left_data_canary);
 
     set_canaries (left_data_canary, right_data_canary);
 
@@ -71,11 +71,7 @@ statuses stack_ctor (struct my_stack* Stack, const char* name_stack1, int number
 
 statuses stack_push (struct my_stack* Stack, elem_t* value){
 
-    printf("push before\n");
-
     STACK_OK (Stack);
-
-    printf("push after\n");
 
     if (value == nullptr){
 
@@ -84,15 +80,13 @@ statuses stack_push (struct my_stack* Stack, elem_t* value){
         return ERROR;
     }
 
-    printf("XDDDDD\n");
-
     if (Stack->Size == Stack->capacity - 1){
 
         Stack->capacity *= 2;
 
         #ifdef canary
 
-        elem_t* data1 = (elem_t*) realloc((char*) Stack->data-sizeof(canary_t), Stack->capacity * (sizeof(elem_t) + sizeof(canary_t)*2));
+        elem_t* data1 = (elem_t*) realloc((char*) Stack->data-sizeof(canary_t), Stack->capacity * sizeof(elem_t) + sizeof(canary_t)*2);
 
         Stack->data = (elem_t*) ((char*) data1 + sizeof(canary_t));
 
@@ -152,13 +146,11 @@ statuses stack_dtor (struct my_stack* Stack){
         return ERROR;
     }
 
-    free(Stack->data);
+    //free(Stack->data);
     Stack->data = nullptr;
     Stack->is_stack_initialase = false;
     Stack->capacity = default_stack_size;
     Stack->Size = 0;
-
-    STACK_OK (Stack);
 
     return SUCCESS;
 }
@@ -225,7 +217,7 @@ statuses stack_dump (struct my_stack* Stack, const char* curr_file, const int cu
 
     else {
 
-        fprintf(LOG_FILE, "stack[%p] %s from %s (%d) %s\n", Stack->data, Stack->name_of_stack, Stack->file, Stack->count_of_line,
+        fprintf(LOG_FILE, "stack[%p] %s from %s (%d) %s\n", Stack, Stack->name_of_stack, Stack->file, Stack->count_of_line,
                 Stack->name_of_func);
 
         fprintf(LOG_FILE, "{\n");
@@ -234,11 +226,11 @@ statuses stack_dump (struct my_stack* Stack, const char* curr_file, const int cu
 
         #ifdef canary
 
-        fprintf(LOG_FILE, "\ left stack canary: %lld \n \
+        fprintf(LOG_FILE, "left stack canary: %lld \n \
                            right stack canary: %lld \n\n \
                            left data canary: %lld \n \
                            right data canary: %lld \n\n", Stack->left_canary, Stack->right_canary,
-                           (canary_t*)((char*) Stack->data), (canary_t*)((char*) Stack->data + Stack->capacity * sizeof(elem_t) + sizeof(canary_t)));
+                           *(canary_t*)((char*) Stack->data - sizeof(canary_t)), *(canary_t*)(Stack->data + Stack->capacity));
         #endif
 
         fprintf(LOG_FILE, "size = %u\n \
@@ -247,7 +239,7 @@ statuses stack_dump (struct my_stack* Stack, const char* curr_file, const int cu
 
         for (size_t i = 0; i < Stack->Size; i++){
 
-            fprintf(LOG_FILE,"*[%u] = %d", i, *(Stack->data + i));
+            fprintf(LOG_FILE,"*[%u] = %d\n", i, *(Stack->data + i));
         }
         fprintf(LOG_FILE, "}\n}\n\n\n\n");
 
