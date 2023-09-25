@@ -28,7 +28,7 @@ statuses stack_ctor (struct my_stack* Stack, const char* name_stack1, int number
         return NO_MEMORY;
     }
 
-    canary_t* left_data_canary  = (canary_t*)((char*) data_of_Stack);
+    canary_t* left_data_canary  = (canary_t*)(data_of_Stack);
     canary_t* right_data_canary = (canary_t*)((char*) data_of_Stack + default_stack_size * sizeof(elem_t) + sizeof(canary_t));
 
     printf("right_data_canary - left_data_canary = %u\n", (size_t)right_data_canary - (size_t)left_data_canary);
@@ -53,7 +53,6 @@ statuses stack_ctor (struct my_stack* Stack, const char* name_stack1, int number
     Stack->data = data_of_Stack;
 
     #endif
-    printf("zxc\n");
 
     Stack->Size                = 0;
     Stack->capacity            = default_stack_size;
@@ -64,7 +63,6 @@ statuses stack_ctor (struct my_stack* Stack, const char* name_stack1, int number
     Stack->file                = name_file;
 
     STACK_OK (Stack);
-    printf("zxc1\n");
 
     return SUCCESS;
 }
@@ -74,8 +72,6 @@ statuses stack_push (struct my_stack* Stack, elem_t* value){
     STACK_OK (Stack);
 
     if (value == nullptr){
-
-        printf("ptr\n");
 
         return ERROR;
     }
@@ -88,6 +84,11 @@ statuses stack_push (struct my_stack* Stack, elem_t* value){
 
         elem_t* data1 = (elem_t*) realloc((char*) Stack->data-sizeof(canary_t), Stack->capacity * sizeof(elem_t) + sizeof(canary_t)*2);
 
+        if (data1 == nullptr){
+
+            return NO_MEMORY;
+        }
+
         Stack->data = (elem_t*) ((char*) data1 + sizeof(canary_t));
 
         clean_right_data (Stack);
@@ -98,7 +99,14 @@ statuses stack_push (struct my_stack* Stack, elem_t* value){
 
         #else
 
-        Stack->data = (elem_t*) realloc(Stack->data, Stack->capacity * sizeof(elem_t));
+        elem_t* data_backup = (elem_t*) realloc(Stack->data, Stack->capacity * sizeof(elem_t));
+
+        if (data_backup == nullptr){
+
+            return NO_MEMORY;
+        }
+
+        Stack->data = data_backup;
 
         clean_right_data (Stack);
 
@@ -146,7 +154,17 @@ statuses stack_dtor (struct my_stack* Stack){
         return ERROR;
     }
 
-    //free(Stack->data);
+    #ifdef canary
+
+    free(Stack->data-sizeof(canary_t));
+
+    #else
+
+    free(Stack->data);
+
+    #endif
+
+    free(Stack->data);
     Stack->data = nullptr;
     Stack->is_stack_initialase = false;
     Stack->capacity = default_stack_size;
@@ -194,8 +212,8 @@ statuses_stack_ok stack_ok (struct my_stack* Stack){
         return INCORRECT_CANARY;
     }
 
-    canary_t* left_data_canary  = (canary_t*)((char*) Stack->data);
-    canary_t* right_data_canary = (canary_t*)((char*) Stack->data + Stack->capacity * sizeof(elem_t) + sizeof(canary_t));
+    canary_t* left_data_canary  = (canary_t*)((char*) Stack->data - sizeof(canary_t));
+    canary_t* right_data_canary = (canary_t*)((char*) Stack->data + Stack->capacity * sizeof(elem_t));
 
     if (((*left_data_canary) != DEFAULT_CANARY_VALUE) || ((*right_data_canary) != DEFAULT_CANARY_VALUE)){
 
@@ -203,6 +221,10 @@ statuses_stack_ok stack_ok (struct my_stack* Stack){
     }
 
     #endif
+
+    unsigned int hash_data = Stack->hash_data;
+
+
 
     return SUCCESS_STACK;
 }
@@ -254,6 +276,11 @@ void clean_right_data (struct my_stack* Stack){
 
         Stack->data[i] = 0;
     }
+}
+
+unsigned int hash_djb2 (const char* hashable, size_t size_hashable){
+
+
 }
 
 

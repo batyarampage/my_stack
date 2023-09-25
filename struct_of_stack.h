@@ -17,6 +17,9 @@ struct my_stack {
 
     char* name_of_func = nullptr;
 
+    unsigned int hash_stack = 0;
+    unsigned int hash_data  = 0;
+
     int count_of_line = 0;
 
     char* file = nullptr;
