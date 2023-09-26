@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 #define STACK_CTOR(stack) stack_ctor((stack), #stack, __LINE__, __func__, __FILE__)
 
 int main (){
@@ -20,18 +19,18 @@ int main (){
 
     printf("ok0\n");
 
-    for (int i = 0; i < 100; i+=10){
+    for (int i = 0; i < 100; i+=2){
 
-        stack_push(&Stack, &i);
+        stack_push(&Stack, i);
     }
 
-    for (int i = 0; i < 100; i+=10){
+    for (int i = 0; i < 100; i+=2){
 
-        int param = 0;
+        long long int param = 0;
 
         stack_pop(&Stack, &param);
 
-        printf("%d ", param);
+        printf(OUTPUT_PARAMETR"\n", param);
     }
 
     printf("\n");

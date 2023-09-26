@@ -10,7 +10,7 @@ enum statuses {
     SIZE = 7
 };
 
-enum statuses_stack_ok{
+enum statuses_stack_ok {
 
     INCORRECT_STACK              = -1,
     INCORRECT_CAPACITY           = 1,
@@ -18,7 +18,16 @@ enum statuses_stack_ok{
     INCORRECT_DIFF_SIZE_CAPACITY = 3,
     INCORRECT_DATA               = 4,
     INCORRECT_CANARY             = 6,
+    INCORRECT_HASH               = 7,
     SUCCESS_STACK                = 5
+};
+
+enum conddition_stack {
+
+    NOT_INICIALED = 0,
+    IS_INICIALED = 1,
+    DESTRUCTED = 2
+
 };
 
 #endif

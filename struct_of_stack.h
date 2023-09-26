@@ -9,26 +9,32 @@ struct my_stack {
 
     canary_t left_canary = 0;
 
+    size_t capacity = DEFAULT_STACK_SIZE;
+
+    const char* name_of_stack = nullptr;
+
+    const char* name_of_func = nullptr;
+
     elem_t* data = nullptr;
-
-    size_t capacity = default_stack_size;
-
-    char* name_of_stack = nullptr;
-
-    char* name_of_func = nullptr;
 
     unsigned int hash_stack = 0;
     unsigned int hash_data  = 0;
 
     int count_of_line = 0;
 
-    char* file = nullptr;
+    const char* file = nullptr;
 
     size_t Size = 0;
 
-    bool is_stack_initialase = false;
+    enum conddition_stack status = NOT_INICIALED;
 
     canary_t right_canary = 0;
+};
+
+struct hashes {
+
+    unsigned int hash_stack = 0;
+    unsigned int hash_data  = 0;
 };
 
 

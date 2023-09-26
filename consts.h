@@ -1,8 +1,12 @@
 #ifndef consts
 #define consts
 
-const size_t default_stack_size = 2;
+#include "typedefine.h"
+
+const size_t DEFAULT_STACK_SIZE = 2;
 
 const long long int DEFAULT_CANARY_VALUE = 228228;
+
+const elem_t POIZON_VALUE = 91919;
 
 #endif

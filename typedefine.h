@@ -4,10 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef int elem_t;
+typedef long long int elem_t;
 
 typedef long long int canary_t;
 
-#define canary
+#define CANARY
+#define HASH_PROTECTION
+#define OUTPUT_PARAMETR "%lld"
 
 #endif
