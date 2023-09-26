@@ -94,9 +94,7 @@ statuses stack_push (struct my_stack* Stack, elem_t value){
 
         clean_right_data (Stack);
 
-        canary_t* right_data_canary = (canary_t*)((char*) Stack->data + Stack->capacity * sizeof(elem_t));
-
-        *right_data_canary = DEFAULT_CANARY_VALUE;
+        *(canary_t*)((char*) Stack->data + Stack->capacity * sizeof(elem_t)) = DEFAULT_CANARY_VALUE;
 
         #else
 
@@ -155,11 +153,11 @@ statuses stack_pop (struct my_stack* Stack, elem_t* value){
 
     #endif
 
-    if ((((Stack->capacity)/2 - 2) >= Stack->Size) && (Stack->Size != 0)){
+    if ((((Stack->capacity)/4) > Stack->Size) && (Stack->Size != 0)){
 
         #ifdef CANARY
 
-        elem_t* data1 = (elem_t*) realloc((char*) Stack->data - sizeof(canary_t), ((Stack->capacity)/2 - 2) * sizeof(elem_t) + sizeof(canary_t)*2);
+        elem_t* data1 = (elem_t*) realloc((char*) Stack->data - sizeof(canary_t), ((Stack->capacity)/4) * sizeof(elem_t) + sizeof(canary_t)*2);
 
         if (data1 == nullptr){
 
@@ -167,7 +165,10 @@ statuses stack_pop (struct my_stack* Stack, elem_t* value){
         }
 
         Stack->data = (elem_t*) ((char*) data1 + sizeof(canary_t));
-        Stack->capacity = (Stack->capacity)/2 - 2;
+
+        Stack->capacity = (Stack->capacity)/4;
+
+        *(canary_t*)((char*) Stack->data + Stack->capacity * sizeof(elem_t)) = DEFAULT_CANARY_VALUE;
 
         #else
 
@@ -297,7 +298,7 @@ statuses_stack_ok stack_ok (struct my_stack* Stack){
 
     unsigned int hash_data_now = hash_djb2((char*) Stack->data-sizeof(canary_t), sizeof(canary_t)*2+Stack->capacity*(sizeof(elem_t)));
 
-    if (hash_data_now == stack_hash_data){
+    if (hash_data_now != stack_hash_data){
 
         //printf("hash_data = %u\nhash_data_now = %u\n\n\n\n\n", stack_hash_data, hash_data_now);
 
@@ -354,7 +355,7 @@ statuses stack_dump (struct my_stack* Stack, const char* curr_file, const int cu
 
         for (size_t i = Stack->Size; i < Stack->capacity; i++){
 
-            fprintf(LOG_FILE," \t\t*[%u] = " OUTPUT_PARAMETR " (POISON)\n", i, *(Stack->data + i));
+            fprintf(LOG_FILE," \t\t [%u] = " OUTPUT_PARAMETR " (POISON)\n", i, *(Stack->data + i));
         }
 
         fprintf(LOG_FILE, "\t}\n");
@@ -408,14 +409,10 @@ unsigned int hash_djb2 (const char* hashable, size_t size_hashable){
 
 statuses set_default_data_poizon (struct my_stack* Stack){
 
-    STACK_OK (Stack);
-
     for (size_t i = 0; i < DEFAULT_STACK_SIZE; i++){
 
         Stack->data[i] = POIZON_VALUE;
     }
-
-    STACK_OK (Stack);
 
     return SUCCESS;
 }

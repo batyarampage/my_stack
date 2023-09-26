@@ -3,7 +3,7 @@
 
 #include "typedefine.h"
 
-const size_t DEFAULT_STACK_SIZE = 2;
+const size_t DEFAULT_STACK_SIZE = 8;
 
 const long long int DEFAULT_CANARY_VALUE = 228228;
 
