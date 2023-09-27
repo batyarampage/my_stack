@@ -23,6 +23,7 @@ static statuses set_default_data_poizon (struct my_stack* Stack);
 
 static hashes main_hashes = {};
 
+
 statuses stack_ctor (struct my_stack* Stack, const char* name_stack, int number_line,
                      const char* name_func, const char* name_file){
 
@@ -387,7 +388,7 @@ static unsigned int hash_djb2 (const char* hashable, size_t size_hashable){
 
         int c = 0;
 
-        c = hashable[i];
+        c = hashable[i++];
 
         hash_t = ((hash_t << 5) + hash_t) + c;
     }

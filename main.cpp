@@ -24,7 +24,22 @@ int main (){
 
     STACK_CTOR(&Stack);
 
+    for (size_t i = 0; i < 100; i++){
 
+        stack_push(&Stack, i);
+    }
+
+    printf("aboba\n");
+
+    for (size_t i = 0; i < 100; i++){
+
+        long long int param = 0;
+
+        stack_pop(&Stack, &param);
+
+        printf("%lld rez\n", param);
+
+    }
 
     stack_dtor(&Stack);
 
