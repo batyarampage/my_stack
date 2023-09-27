@@ -282,38 +282,19 @@ statuses_stack_ok stack_ok (struct my_stack* Stack){
 
     #endif
 
-    unsigned int stack_hash_stack = Stack->hash_stack;
-    unsigned int stack_hash_data = Stack->hash_data;
-
-    Stack->hash_data = 0;
-    Stack->hash_stack = 0;
-
     unsigned int hash_stack_now = hash_djb2((char*) Stack, sizeof(*Stack));
 
-    if (stack_hash_stack != hash_stack_now){
-
-        //printf("hash_stack = %u\nhash_stack_now = %u\n\n\n\n\n", stack_hash_stack, hash_stack_now);
-
-        Stack->hash_stack = stack_hash_stack;
-        Stack->hash_data = stack_hash_data;
+    if (main_hashes.hash_stack != hash_stack_now){
 
         return INCORRECT_HASH;
     }
 
     unsigned int hash_data_now = hash_djb2((char*) Stack->data-sizeof(canary_t), sizeof(canary_t)*2+Stack->capacity*(sizeof(elem_t)));
 
-    if (hash_data_now != stack_hash_data){
-
-        //printf("hash_data = %u\nhash_data_now = %u\n\n\n\n\n", stack_hash_data, hash_data_now);
-
-        Stack->hash_stack = stack_hash_stack;
-        Stack->hash_data = stack_hash_data;
+    if (hash_data_now != main_hashes.hash_data){
 
         return INCORRECT_HASH;
     }
-
-    Stack->hash_data = stack_hash_data;
-    Stack->hash_stack = stack_hash_stack;
 
     return SUCCESS_STACK;
 }
@@ -346,7 +327,7 @@ statuses stack_dump (struct my_stack* Stack, const char* curr_file, const int cu
         #ifdef HASH_PROTECTION
 
         fprintf(LOG_FILE, "\tStack_hash = %u\n \tData_hash  = %u \n\n",
-                            Stack->hash_stack, Stack->hash_data);
+                            main_hashes.hash_stack, main_hashes.hash_data);
 
         #endif
 
@@ -384,16 +365,9 @@ void rehash_stack_and_data (struct my_stack* Stack){
 
     assert(Stack != nullptr);
 
-    Stack->hash_data = 0;
-    Stack->hash_data = hash_djb2((char*) Stack->data-sizeof(canary_t), sizeof(canary_t)*2+Stack->capacity*(sizeof(elem_t)));
+    main_hashes.hash_data = hash_djb2((char*) Stack->data-sizeof(canary_t), sizeof(canary_t)*2+Stack->capacity*(sizeof(elem_t)));
 
-    Stack->hash_stack = 0;
-
-    unsigned int stack_hash_data = Stack->hash_data;
-    Stack->hash_data = 0;
-
-    Stack->hash_stack = hash_djb2((char*) Stack, sizeof(*Stack));
-    Stack->hash_data  = stack_hash_data;
+    main_hashes.hash_stack = hash_djb2((char*) Stack, sizeof(*Stack));
 }
 
 

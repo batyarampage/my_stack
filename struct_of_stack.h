@@ -17,9 +17,6 @@ struct my_stack {
 
     elem_t* data;
 
-    unsigned int hash_stack;
-    unsigned int hash_data;
-
     int count_of_line;
 
     const char* file;
