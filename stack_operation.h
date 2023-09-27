@@ -22,19 +22,5 @@ statuses stack_pop  (struct my_stack* Stack, elem_t* value);
 
 statuses stack_dtor (struct my_stack* Stack);
 
-statuses_stack_ok stack_ok (struct my_stack* Stack);
-
-statuses stack_dump (struct my_stack* Stack, const char* curr_file, const int curr_line, const char* curr_func);
-
-void clean_right_data (struct my_stack* Stack);
-
-void set_canaries (canary_t* left_canary, canary_t* right_canary);
-
-unsigned int hash_djb2 (const char* hashable, size_t size_hashable);
-
-void rehash_stack_and_data (struct my_stack* Stack);
-
-statuses set_default_data_poizon (struct my_stack* Stack);
-
 
 #endif

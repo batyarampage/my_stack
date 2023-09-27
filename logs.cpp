@@ -11,9 +11,10 @@ void log_start (){
 
     assert(LOG_FILE != nullptr);
 
+    LOG_FILE = nullptr;
+
     fprintf(LOG_FILE, "logs is begun\n\n");
 }
-
 
 
 void log_end (){

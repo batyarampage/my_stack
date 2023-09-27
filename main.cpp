@@ -9,6 +9,13 @@
 
 #define STACK_CTOR(stack) stack_ctor((stack), #stack, __LINE__, __func__, __FILE__)
 
+/*!
+
+to use logs, you must log_start (); before initialase stack and log_end after stack_dtor;
+
+*/
+
+
 int main (){
 
     log_start ();
@@ -17,23 +24,7 @@ int main (){
 
     STACK_CTOR(&Stack);
 
-    printf("ok0\n");
 
-    for (int i = 0; i < 100; i+=2){
-
-        stack_push(&Stack, i);
-    }
-
-    for (int i = 0; i < 100; i+=2){
-
-        long long int param = 0;
-
-        stack_pop(&Stack, &param);
-
-        printf(OUTPUT_PARAMETR"\n", param);
-    }
-
-    printf("\n");
 
     stack_dtor(&Stack);
 
