@@ -7,34 +7,34 @@
 
 struct my_stack {
 
-    canary_t left_canary = 0;
+    canary_t left_canary;
 
-    size_t capacity = DEFAULT_STACK_SIZE;
+    size_t capacity;
 
-    const char* name_of_stack = nullptr;
+    const char* name_of_stack;
 
-    const char* name_of_func = nullptr;
+    const char* name_of_func;
 
-    elem_t* data = nullptr;
+    elem_t* data;
 
-    unsigned int hash_stack = 0;
-    unsigned int hash_data  = 0;
+    unsigned int hash_stack;
+    unsigned int hash_data;
 
-    int count_of_line = 0;
+    int count_of_line;
 
-    const char* file = nullptr;
+    const char* file;
 
-    size_t Size = 0;
+    size_t Size;
 
-    enum conddition_stack status = NOT_INICIALED;
+    enum conddition_stack status;
 
-    canary_t right_canary = 0;
+    canary_t right_canary;
 };
 
 struct hashes {
 
-    unsigned int hash_stack = 0;
-    unsigned int hash_data  = 0;
+    unsigned int hash_stack;
+    unsigned int hash_data;
 };
 
 

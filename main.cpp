@@ -13,7 +13,7 @@ int main (){
 
     log_start ();
 
-    struct my_stack Stack = {};
+    my_stack Stack = {};
 
     STACK_CTOR(&Stack);
 

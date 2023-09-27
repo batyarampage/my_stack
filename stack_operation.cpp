@@ -6,7 +6,7 @@
 #define STACK_DUMP(stack) stack_dump((stack), __FILE__, __LINE__, __func__)
 #define STACK_OK(stack) if (stack_ok(stack) != SUCCESS_STACK) { STACK_DUMP(stack);}
 
-//struct hashes main_hashes = {};
+static hashes main_hashes = {};
 
 statuses stack_ctor (struct my_stack* Stack, const char* name_stack, int number_line,
                      const char* name_func, const char* name_file){
@@ -28,8 +28,6 @@ statuses stack_ctor (struct my_stack* Stack, const char* name_stack, int number_
 
     canary_t* left_data_canary  = (canary_t*)(data_of_Stack);
     canary_t* right_data_canary = (canary_t*)((char*) data_of_Stack + DEFAULT_STACK_SIZE * sizeof(elem_t) + sizeof(canary_t));
-
-    printf("right_data_canary - left_data_canary = %u\n", (size_t)right_data_canary - (size_t)left_data_canary);
 
     set_canaries (left_data_canary, right_data_canary);
 
@@ -72,6 +70,7 @@ statuses stack_ctor (struct my_stack* Stack, const char* name_stack, int number_
 
     return SUCCESS;
 }
+
 
 statuses stack_push (struct my_stack* Stack, elem_t value){
 
@@ -132,6 +131,7 @@ statuses stack_push (struct my_stack* Stack, elem_t value){
     return SUCCESS;
 }
 
+
 statuses stack_pop (struct my_stack* Stack, elem_t* value){
 
     STACK_OK (Stack);
@@ -141,11 +141,20 @@ statuses stack_pop (struct my_stack* Stack, elem_t* value){
         return ERROR;
     }
 
-    (Stack->Size)--;
+    if ((Stack->Size) >= 1){
 
-    *value = *(Stack->data + Stack->Size);
+        (Stack->Size)--;
 
-    *(Stack->data + Stack->Size) = POIZON_VALUE;
+        *value = *(Stack->data + Stack->Size);
+
+        *(Stack->data + Stack->Size) = POIZON_VALUE;
+    }
+
+    else {
+
+        return ERROR;
+    }
+
 
     #ifdef HASH_PROTECTION
 
@@ -207,7 +216,7 @@ statuses stack_dtor (struct my_stack* Stack){
 
     #ifdef CANARY
 
-    free(Stack->data-sizeof(canary_t));
+    free((canary_t *)Stack->data - 1);
 
     #else
 
@@ -215,7 +224,6 @@ statuses stack_dtor (struct my_stack* Stack){
 
     #endif
 
-    free(Stack->data);
     Stack->data     = nullptr;
     Stack->capacity = DEFAULT_STACK_SIZE;
     Stack->Size     = 0;
@@ -233,6 +241,7 @@ void set_canaries (canary_t* left_canary, canary_t* right_canary){
     *left_canary  = DEFAULT_CANARY_VALUE;
     *right_canary = DEFAULT_CANARY_VALUE;
 }
+
 
 statuses_stack_ok stack_ok (struct my_stack* Stack){
 
@@ -278,11 +287,6 @@ statuses_stack_ok stack_ok (struct my_stack* Stack){
 
     Stack->hash_data = 0;
     Stack->hash_stack = 0;
-
-    //printf("sizeof %u\n", sizeof((char*) Stack->data-sizeof(canary_t)));
-    //printf("sizeof STACK %u\n", sizeof(*Stack));
-    //printf("sizeof DATA %u\n", sizeof(canary_t)*2+Stack->capacity*(sizeof(elem_t)));
-    //printf("capacity data %u\n", Stack->capacity);
 
     unsigned int hash_stack_now = hash_djb2((char*) Stack, sizeof(*Stack));
 
@@ -331,7 +335,7 @@ statuses stack_dump (struct my_stack* Stack, const char* curr_file, const int cu
 
         #ifdef CANARY
 
-        fprintf(LOG_FILE, "\tleft stack canary: %lld \n\ \tright stack canary: %lld \n\n \tleft data canary: %lld \n \tright data canary: %lld \n\n",
+        fprintf(LOG_FILE, "\tleft stack canary: %lld \n \tright stack canary: %lld \n\n \tleft data canary: %lld \n \tright data canary: %lld \n\n",
                 Stack->left_canary, Stack->right_canary,*(canary_t*)((char*) Stack->data - sizeof(canary_t)),
                 *(canary_t*)((char*)Stack->data + Stack->capacity*sizeof(elem_t)));
         #endif
@@ -350,12 +354,12 @@ statuses stack_dump (struct my_stack* Stack, const char* curr_file, const int cu
 
         for (size_t i = 0; i < Stack->Size; i++){
 
-            fprintf(LOG_FILE,"\t\t*[%u] = " OUTPUT_PARAMETR " \n", i, *(Stack->data + i));
+            fprintf(LOG_FILE,"\t\t*[%lu] = " OUTPUT_PARAMETR " \n", i, *(Stack->data + i));
         }
 
         for (size_t i = Stack->Size; i < Stack->capacity; i++){
 
-            fprintf(LOG_FILE," \t\t [%u] = " OUTPUT_PARAMETR " (POISON)\n", i, *(Stack->data + i));
+            fprintf(LOG_FILE," \t\t [%lu] = " OUTPUT_PARAMETR " (POISON)\n", i, *(Stack->data + i));
         }
 
         fprintf(LOG_FILE, "\t}\n");
@@ -365,6 +369,7 @@ statuses stack_dump (struct my_stack* Stack, const char* curr_file, const int cu
 
     return SUCCESS;
 }
+
 
 void clean_right_data (struct my_stack* Stack){
 
@@ -391,6 +396,7 @@ void rehash_stack_and_data (struct my_stack* Stack){
     Stack->hash_data  = stack_hash_data;
 }
 
+
 unsigned int hash_djb2 (const char* hashable, size_t size_hashable){
 
     unsigned int hash_t = 5381;
@@ -406,6 +412,7 @@ unsigned int hash_djb2 (const char* hashable, size_t size_hashable){
 
     return hash_t % (int) 1e9;
 }
+
 
 statuses set_default_data_poizon (struct my_stack* Stack){
 
