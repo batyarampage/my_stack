@@ -5,7 +5,7 @@ enum statuses {
 
     SUCCESS = 1,
     ERROR = -1,
-    STACK_WAS_INICIALASED_BEFORE = -3,
+    STACK_WAS_INITIALIZED_BEFORE = -3,
     NO_MEMORY = -5,
     SIZE = 7
 };
@@ -24,8 +24,8 @@ enum statuses_stack_ok {
 
 enum conddition_stack {
 
-    NOT_INICIALED = 0,
-    IS_INICIALED = 1,
+    NOT_INITIALIZED = 0,
+    IS_INITIALIZED = 1,
     DESTRUCTED = 2
 
 };

@@ -2,9 +2,11 @@
 #include "enumerate_statuses.h"
 #include "struct_of_stack.h"
 #include "typedefine.h"
+#include "consts.h"
 
 #define STACK_DUMP(stack) stack_dump((stack), __FILE__, __LINE__, __func__)
 #define STACK_OK(stack) if (stack_ok(stack) != SUCCESS_STACK) { STACK_DUMP(stack);}
+
 
 static void set_canaries (canary_t* left_canary, canary_t* right_canary);
 
@@ -20,6 +22,8 @@ static unsigned int hash_djb2 (const char* hashable, size_t size_hashable);
 
 static statuses set_default_data_poizon (struct my_stack* Stack);
 
+static statuses stack_reallocation (struct my_stack* Stack, const int parametr);
+
 
 static hashes main_hashes = {};
 
@@ -28,9 +32,9 @@ statuses stack_ctor (struct my_stack* Stack, const char* name_stack, int number_
                      const char* name_func, const char* name_file){
 
 
-    if (Stack->status == IS_INICIALED){
+    if (Stack->status == IS_INITIALIZED){
 
-        return STACK_WAS_INICIALASED_BEFORE;
+        return STACK_WAS_INITIALIZED_BEFORE;
     }
 
     #ifdef CANARY
@@ -70,7 +74,7 @@ statuses stack_ctor (struct my_stack* Stack, const char* name_stack, int number_
 
     Stack->Size           = 0;
     Stack->capacity       = DEFAULT_STACK_SIZE;
-    Stack->status         = IS_INICIALED;
+    Stack->status         = IS_INITIALIZED;
     Stack->name_of_stack  = name_stack;
     Stack->name_of_func   = name_func;
     Stack->count_of_line  = number_line;
@@ -94,42 +98,7 @@ statuses stack_push (struct my_stack* Stack, elem_t value){
 
     if (Stack->Size == Stack->capacity - 1){
 
-        Stack->capacity *= 2;
-
-        #ifdef CANARY
-
-        elem_t* data1 = (elem_t*) realloc((char*) Stack->data - sizeof(canary_t), Stack->capacity * sizeof(elem_t) + sizeof(canary_t)*2);
-
-        if (data1 == nullptr){
-
-            return NO_MEMORY;
-        }
-
-        Stack->data = (elem_t*) ((char*) data1 + sizeof(canary_t));
-
-        clean_right_data (Stack);
-
-        *(canary_t*)((char*) Stack->data + Stack->capacity * sizeof(elem_t)) = DEFAULT_CANARY_VALUE;
-
-        #else
-
-        elem_t* data_backup = (elem_t*) realloc(Stack->data, Stack->capacity * sizeof(elem_t));
-
-        if (data_backup == nullptr){
-
-            return NO_MEMORY;
-        }
-
-        Stack->data = data_backup;
-
-        clean_right_data (Stack);
-
-        #endif
-
-        if (Stack->data == nullptr){
-
-            return NO_MEMORY;
-        }
+        stack_reallocation(Stack, UP);
     }
 
     *(Stack->data + Stack->Size) = value;
@@ -158,55 +127,30 @@ statuses stack_pop (struct my_stack* Stack, elem_t* value){
     }
 
 
-    Stack->Size--;
+    if ((Stack->Size) >= 1){
 
-    *value = *(Stack->data + Stack->Size);
-    *(Stack->data + Stack->Size) = POIZON_VALUE;
+        (Stack->Size)--;
 
+        *value = *(Stack->data + Stack->Size);
+
+        *(Stack->data + Stack->Size) = POIZON_VALUE;
+    }
+
+    else {
+
+        return ERROR;
+    }
+
+    if ((((Stack->capacity)/4) > Stack->Size) && (Stack->Size != 0)){
+
+        stack_reallocation(Stack, DOWN);
+    }
 
     #ifdef HASH_PROTECTION
 
     rehash_stack_and_data (Stack);
 
     #endif
-
-    if ((((Stack->capacity)/4) > Stack->Size) && (Stack->Size != 0)){
-
-        #ifdef CANARY
-
-        elem_t* data1 = (elem_t*) realloc((char*) Stack->data - sizeof(canary_t), ((Stack->capacity)/4) * sizeof(elem_t) + sizeof(canary_t)*2);
-
-        if (data1 == nullptr){
-
-            return NO_MEMORY;
-        }
-
-        Stack->data = (elem_t*) ((char*) data1 + sizeof(canary_t));
-
-        Stack->capacity = (Stack->capacity)/4;
-
-        *(canary_t*)((char*) Stack->data + Stack->capacity * sizeof(elem_t)) = DEFAULT_CANARY_VALUE;
-
-        #else
-
-        elem_t* data_backup = (elem_t*) realloc(Stack->data, Stack->capacity * sizeof(elem_t));
-
-        if (data_backup == nullptr){
-
-            return NO_MEMORY;
-        }
-
-        Stack->data = data_backup;
-
-        #endif
-
-
-        #ifdef HASH_PROTECTION
-
-        rehash_stack_and_data (Stack);
-
-        #endif
-    }
 
     STACK_OK (Stack);
 
@@ -281,8 +225,8 @@ static statuses_stack_ok stack_ok (struct my_stack* Stack){
         return INCORRECT_CANARY;
     }
 
-    canary_t* left_data_canary  = (canary_t*)((char*) Stack->data - sizeof(canary_t));
-    canary_t* right_data_canary = (canary_t*)((char*) Stack->data + Stack->capacity * sizeof(elem_t));
+    canary_t* left_data_canary  = (canary_t*)(Stack->data - 1);
+    canary_t* right_data_canary = (canary_t*)(Stack->data + Stack->capacity);
 
     if (((*left_data_canary) != DEFAULT_CANARY_VALUE) || ((*right_data_canary) != DEFAULT_CANARY_VALUE)){
 
@@ -407,4 +351,74 @@ static statuses set_default_data_poizon (struct my_stack* Stack){
     return SUCCESS;
 }
 
+static statuses stack_reallocation (struct my_stack* Stack, const int parametr){
 
+    if (parametr){
+
+        #ifdef CANARY
+
+        Stack->capacity *= RE_SIZING;
+
+        elem_t* data1 = (elem_t*) realloc((char*) Stack->data - sizeof(canary_t), Stack->capacity * sizeof(elem_t) + sizeof(canary_t)*2);
+
+        if (data1 == nullptr){
+
+            return NO_MEMORY;
+        }
+
+        Stack->data = (elem_t*) ((char*) data1 + sizeof(canary_t));
+
+        *(canary_t*)((char*) Stack->data + Stack->capacity * sizeof(elem_t)) = DEFAULT_CANARY_VALUE;
+
+        #else
+
+        elem_t* data_backup = (elem_t*) realloc(Stack->data, Stack->capacity * sizeof(elem_t));
+
+        if (data_backup == nullptr){
+
+            return NO_MEMORY;
+        }
+
+        Stack->data = data_backup;
+
+        #endif
+
+        clean_right_data (Stack);
+
+        return SUCCESS;
+    }
+
+    else {
+
+        #ifdef CANARY
+
+        elem_t* data1 = (elem_t*) realloc((char*) Stack->data - sizeof(canary_t), ((Stack->capacity)/4) * sizeof(elem_t) + sizeof(canary_t)*2);
+
+        if (data1 == nullptr){
+
+            return NO_MEMORY;
+        }
+
+        Stack->data = (elem_t*) ((char*) data1 + sizeof(canary_t));
+
+        *(canary_t*)((char*) Stack->data + Stack->capacity * sizeof(elem_t)) = DEFAULT_CANARY_VALUE;
+
+        #else
+
+
+        elem_t* data_backup = (elem_t*) realloc(Stack->data, ((Stack->capacity)/4) * sizeof(elem_t));
+
+        if (data_backup == nullptr){
+
+            return NO_MEMORY;
+        }
+
+        Stack->data = data_backup;
+
+        #endif
+
+        Stack->capacity = (Stack->capacity)/4;
+
+        return SUCCESS;
+    }
+}
