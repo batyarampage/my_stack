@@ -22,13 +22,15 @@ int main (){
 
     inicialase_stack_descpryptor ();
 
+    int a = 1;
+
     printf("aboba1\n");
 
-    /*STACK_CTOR(&Stack);
+    STACK_CTOR(a);
 
     for (size_t i = 0; i < 100; i++){
 
-        stack_push(&Stack, i);
+        stack_push(a, i);
     }
 
     printf("aboba\n");
@@ -37,13 +39,13 @@ int main (){
 
         long long int param = 0;
 
-        stack_pop(&Stack, &param);
+        stack_pop(a, &param);
 
-        printf("%lld rez\n", param);
+        printf("%lld \n", param);
 
     }
 
-    stack_dtor(&Stack);*/
+    stack_dtor(a);
 
     log_end ();
 

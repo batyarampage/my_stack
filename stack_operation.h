@@ -13,14 +13,14 @@
 
 extern FILE* LOG_FILE;
 
-statuses stack_ctor (struct my_stack* Stack, const char* name_stack1, int number_line,
-                     const char* name_func1, const char* name_file1);
+statuses stack_ctor (int descryptor, const char* name_stack, int number_line,
+                     const char* name_func, const char* name_file);
 
-statuses stack_push (struct my_stack* Stack, elem_t value);
+statuses stack_push (int descryptor, elem_t value);
 
-statuses stack_pop  (struct my_stack* Stack, elem_t* value);
+statuses stack_pop (int descryptor, elem_t* value);
 
-statuses stack_dtor (struct my_stack* Stack);
+statuses stack_dtor (int descryptor);
 
 void inicialase_stack_descpryptor ();
 
