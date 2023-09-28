@@ -59,7 +59,7 @@ statuses stack_ctor (struct my_stack* Stack, const char* name_stack, int number_
 
     #else
 
-    elem_t* data_of_Stack = (elem_t*) calloc(DEFAULT_STACK_SIZE, sizeof(elem_t));
+    elem_t* data_of_Stack = (elem_t*) calloc(DEFAULT_STACK_SIZE*sizeof(elem_t), 1);
 
     if (data_of_Stack == nullptr){
 
@@ -126,20 +126,11 @@ statuses stack_pop (struct my_stack* Stack, elem_t* value){
         return ERROR;
     }
 
+    (Stack->Size)--;
 
-    if ((Stack->Size) >= 1){
+    *value = *(Stack->data + Stack->Size);
 
-        (Stack->Size)--;
-
-        *value = *(Stack->data + Stack->Size);
-
-        *(Stack->data + Stack->Size) = POIZON_VALUE;
-    }
-
-    else {
-
-        return ERROR;
-    }
+    *(Stack->data + Stack->Size) = POIZON_VALUE;
 
     if ((((Stack->capacity)/4) > Stack->Size) && (Stack->Size != 0)){
 
@@ -237,14 +228,14 @@ static statuses_stack_ok stack_ok (struct my_stack* Stack){
 
     unsigned int hash_stack_now = hash_djb2((char*) Stack, sizeof(*Stack));
 
-    if (main_hashes.hash_stack != hash_stack_now){
+    if (main_hashes.hash_stack == hash_stack_now){
 
         return INCORRECT_HASH;
     }
 
     unsigned int hash_data_now = hash_djb2((char*) Stack->data-sizeof(canary_t), sizeof(canary_t)*2+Stack->capacity*(sizeof(elem_t)));
 
-    if (hash_data_now != main_hashes.hash_data){
+    if (hash_data_now == main_hashes.hash_data){
 
         return INCORRECT_HASH;
     }
@@ -355,9 +346,9 @@ static statuses stack_reallocation (struct my_stack* Stack, const int parametr){
 
     if (parametr){
 
-        #ifdef CANARY
-
         Stack->capacity *= RE_SIZING;
+
+        #ifdef CANARY
 
         elem_t* data1 = (elem_t*) realloc((char*) Stack->data - sizeof(canary_t), Stack->capacity * sizeof(elem_t) + sizeof(canary_t)*2);
 
