@@ -22,5 +22,7 @@ statuses stack_pop  (struct my_stack* Stack, elem_t* value);
 
 statuses stack_dtor (struct my_stack* Stack);
 
+void inicialase_stack_descpryptor ();
+
 
 #endif

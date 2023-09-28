@@ -20,9 +20,11 @@ int main (){
 
     log_start ();
 
-    my_stack Stack = {};
+    inicialase_stack_descpryptor ();
 
-    STACK_CTOR(&Stack);
+    printf("aboba1\n");
+
+    /*STACK_CTOR(&Stack);
 
     for (size_t i = 0; i < 100; i++){
 
@@ -41,7 +43,7 @@ int main (){
 
     }
 
-    stack_dtor(&Stack);
+    stack_dtor(&Stack);*/
 
     log_end ();
 

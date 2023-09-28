@@ -24,17 +24,97 @@ static statuses set_default_data_poizon (struct my_stack* Stack);
 
 static statuses stack_reallocation (struct my_stack* Stack, const int parametr);
 
+static void inicialase_descryptor_array ();
 
-static hashes main_hashes = {};
+static void inicialse_stack_array ();
+
+static void resize_stack_descpryptor ();
 
 
-statuses stack_ctor (struct my_stack* Stack, const char* name_stack, int number_line,
+
+
+//static hashes main_hashes = {};
+
+static int lenght_of_array = 2;
+
+static const int DEDAULT_VALUE_DESCRYPTOR_ARRAY = 900090009;
+
+static int count_of_active_stack = 0;
+
+static my_stack* array_of_stack = nullptr;
+
+static int* array_of_descryptor = nullptr;
+
+
+static void inicialase_descryptor_array (){
+
+    array_of_descryptor = (int*) calloc(lenght_of_array, sizeof(int));
+}
+
+static void inicialse_stack_array (){
+
+    array_of_stack = (my_stack*) calloc(lenght_of_array, sizeof(my_stack));
+}
+
+
+
+void inicialase_stack_descpryptor (){
+
+    inicialase_descryptor_array ();
+    inicialse_stack_array ();
+
+    for (size_t i = 0; i < lenght_of_array; i++){
+
+        array_of_descryptor = DEDAULT_VALUE_DESCRYPTOR_ARRAY;
+    }
+
+    resize_stack_descpryptor ();
+}
+
+static void resize_stack_descpryptor (){
+
+    lenght_of_array *= 2;
+
+    array_of_descryptor = (int*) realloc(array_of_descryptor, sizeof(int)*lenght_of_array);
+
+    array_of_stack = (my_stack*) realloc(array_of_stack, sizeof(my_stack)*lenght_of_array);
+
+    for (size_t i = lenght_of_array/2; i < lenght_of_array; i++){
+
+        array_of_descryptor[i] = DEDAULT_VALUE_DESCRYPTOR_ARRAY;
+    }
+}
+
+static bool descryptor_in_array (int* index_stack, int descryptor){
+
+    for (int i = 0; i < lenght_of_array; i++){
+
+        if (array_of_descryptor[i] == descryptor){
+
+            *index_stack = i;
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+statuses stack_ctor (int descryptor, const char* name_stack, int number_line,
                      const char* name_func, const char* name_file){
 
+    int index_stack = 0;
 
-    if (Stack->status == IS_INITIALIZED){
+    if (descryptor_in_array(&index_stack, descryptor){
 
         return STACK_WAS_INITIALIZED_BEFORE;
+    }
+
+    count_of_active_stack++;
+
+    if (count_of_active_stack > lenght_of_array){
+
+        resize_stack_descpryptor ();
     }
 
     #ifdef CANARY
@@ -51,11 +131,11 @@ statuses stack_ctor (struct my_stack* Stack, const char* name_stack, int number_
 
     set_canaries (left_data_canary, right_data_canary);
 
-    set_canaries (&(Stack->left_canary), &(Stack->right_canary));
+    set_canaries (&((array_of_stack[index_stack]).left_canary), &((array_of_stack[index_stack]).right_canary));
 
     elem_t* first_data = (elem_t*)((char*) data_of_Stack + sizeof(canary_t));
 
-    Stack->data = first_data;
+    (array_of_stack[index_stack]).data = first_data;
 
     #else
 
@@ -66,112 +146,134 @@ statuses stack_ctor (struct my_stack* Stack, const char* name_stack, int number_
         return NO_MEMORY;
     }
 
-    Stack->data = data_of_Stack;
+    (array_of_stack[index_stack]).data = data_of_Stack;
 
     #endif
 
-    set_default_data_poizon (Stack);
+    set_default_data_poizon (index_stack);
 
-    Stack->Size           = 0;
-    Stack->capacity       = DEFAULT_STACK_SIZE;
-    Stack->status         = IS_INITIALIZED;
-    Stack->name_of_stack  = name_stack;
-    Stack->name_of_func   = name_func;
-    Stack->count_of_line  = number_line;
-    Stack->file           = name_file;
+    (array_of_stack[index_stack]).Size           = 0;
+    (array_of_stack[index_stack]).capacity       = DEFAULT_STACK_SIZE;
+    (array_of_stack[index_stack]).status         = IS_INITIALIZED;
+    (array_of_stack[index_stack]).name_of_stack  = name_stack;
+    (array_of_stack[index_stack]).name_of_func   = name_func;
+    (array_of_stack[index_stack]).count_of_line  = number_line;
+    (array_of_stack[index_stack]).file           = name_file;
 
     #ifdef HASH_PROTECTION
 
-    rehash_stack_and_data (Stack);
+    rehash_stack_and_data (index_stack);
 
     #endif
 
-    STACK_OK (Stack);
+    //STACK_OK (Stack);
 
     return SUCCESS;
 }
 
 
-statuses stack_push (struct my_stack* Stack, elem_t value){
+statuses stack_push (int descryptor){
 
-    STACK_OK (Stack);
+    //STACK_OK (Stack);
 
-    if (Stack->Size == Stack->capacity - 1){
+    int index_stack = 0;
 
-        stack_reallocation(Stack, UP);
+    if (!(descryptor_in_array(&index_stack, descryptor)){
+
+        return NOT_DESCRYPTOR_EXISTS;
     }
 
-    *(Stack->data + Stack->Size) = value;
 
-    (Stack->Size)++;
+    if ((array_of_stack[index_stack]).Size == (array_of_stack[index_stack]).capacity - 1){
+
+        stack_reallocation(index_stack, UP);
+    }
+
+    *((array_of_stack[descryptor]).data + (array_of_stack[descryptor]).Size) = value;
+
+    ((array_of_stack[descryptor]).Size)++;
 
     #ifdef HASH_PROTECTION
 
-    rehash_stack_and_data (Stack);
+    rehash_stack_and_data (descryptor);
 
     #endif
 
-    STACK_OK (Stack);
+    //STACK_OK (Stack);
 
     return SUCCESS;
 }
 
 
-statuses stack_pop (struct my_stack* Stack, elem_t* value){
+statuses stack_pop (int descryptor, elem_t* value){
 
-    STACK_OK (Stack);
+    //STACK_OK (Stack);
 
-    if (value == nullptr){
+    int index_stack = 0;
+
+    if (!(descryptor_in_array(&index_stack, descryptor)){
+
+        return NOT_DESCRYPTOR_EXISTS;
+    }
+
+    if (((array_of_stack[descryptor]).Size) >= 1){
+
+        ((array_of_stack[descryptor]).Size)--;
+
+        *value = *((array_of_stack[descryptor]).data + (array_of_stack[descryptor]).Size);
+
+        *((array_of_stack[descryptor]).data + (array_of_stack[descryptor]).Size) = POIZON_VALUE;
+    }
+
+    else {
 
         return ERROR;
     }
 
-    (Stack->Size)--;
+    if (((((array_of_stack[descryptor]).capacity)/4) > (array_of_stack[descryptor]).Size) && ((array_of_stack[descryptor]).Size != 0)){
 
-    *value = *(Stack->data + Stack->Size);
-
-    *(Stack->data + Stack->Size) = POIZON_VALUE;
-
-    if ((((Stack->capacity)/4) > Stack->Size) && (Stack->Size != 0)){
-
-        stack_reallocation(Stack, DOWN);
+        stack_reallocation(descryptor, DOWN);
     }
 
     #ifdef HASH_PROTECTION
 
-    rehash_stack_and_data (Stack);
+    rehash_stack_and_data (descryptor);
 
     #endif
 
-    STACK_OK (Stack);
+    //STACK_OK (Stack);
 
     return SUCCESS;
 }
 
 
-statuses stack_dtor (struct my_stack* Stack){
+statuses stack_dtor (int descryptor){
 
-    STACK_OK (Stack);
+    //STACK_OK (Stack);
 
-    if (Stack == nullptr){
+    int index_stack = 0;
 
-        return ERROR;
+    if (!(descryptor_in_array(&index_stack, descryptor)){
+
+        return NOT_DESCRYPTOR_EXISTS;
     }
 
     #ifdef CANARY
 
-    free((canary_t *)Stack->data - 1);
+    free((canary_t *)(array_of_stack[index_stack]).data - 1);
 
     #else
 
-    free(Stack->data);
+    free((array_of_stack[index_stack]).data);
 
     #endif
 
-    Stack->data     = nullptr;
-    Stack->capacity = DEFAULT_STACK_SIZE;
-    Stack->Size     = 0;
-    Stack->status   = DESTRUCTED;
+    (array_of_stack[index_stack]).data     = nullptr;
+    (array_of_stack[index_stack]).capacity = DEFAULT_STACK_SIZE;
+    (array_of_stack[index_stack]).Size     = 0;
+    (array_of_stack[index_stack]).status   = DESTRUCTED;
+
+    count_of_active_stack--;
 
     return SUCCESS;
 }
@@ -219,7 +321,10 @@ static statuses_stack_ok stack_ok (struct my_stack* Stack){
     canary_t* left_data_canary  = (canary_t*)(Stack->data - 1);
     canary_t* right_data_canary = (canary_t*)(Stack->data + Stack->capacity);
 
-    if (((*left_data_canary) != DEFAULT_CANARY_VALUE) || ((*right_data_canary) != DEFAULT_CANARY_VALUE)){
+    assert(left_data_canary  != nullptr);
+    assert(right_data_canary != nullptr);
+
+    if (((*left_data_canary) != DEFAULT_CANARY_VALUE) && ((*right_data_canary) != DEFAULT_CANARY_VALUE)){
 
         return INCORRECT_CANARY;
     }
@@ -228,14 +333,14 @@ static statuses_stack_ok stack_ok (struct my_stack* Stack){
 
     unsigned int hash_stack_now = hash_djb2((char*) Stack, sizeof(*Stack));
 
-    if (main_hashes.hash_stack == hash_stack_now){
+    if (main_hashes.hash_stack != hash_stack_now){
 
         return INCORRECT_HASH;
     }
 
     unsigned int hash_data_now = hash_djb2((char*) Stack->data-sizeof(canary_t), sizeof(canary_t)*2+Stack->capacity*(sizeof(elem_t)));
 
-    if (hash_data_now == main_hashes.hash_data){
+    if (hash_data_now != main_hashes.hash_data){
 
         return INCORRECT_HASH;
     }
@@ -245,6 +350,9 @@ static statuses_stack_ok stack_ok (struct my_stack* Stack){
 
 
 static statuses stack_dump (struct my_stack* Stack, const char* curr_file, const int curr_line, const char* curr_func){
+
+    assert(curr_file != nullptr);
+    assert(curr_func != nullptr);
 
     if (Stack == nullptr){
 
@@ -277,14 +385,14 @@ static statuses stack_dump (struct my_stack* Stack, const char* curr_file, const
 
         fprintf(LOG_FILE, "\t{\n");
 
-        for (size_t i = 0; i < Stack->Size; i++){
+        for (size_t i = 0; i < (array_of_stack[descryptor]).Size; i++){
 
-            fprintf(LOG_FILE,"\t\t*[%lu] = " OUTPUT_PARAMETR " \n", i, *(Stack->data + i));
+            fprintf(LOG_FILE,"\t\t*[%lu] = " OUTPUT_PARAMETR " \n", i, *((array_of_stack[descryptor]).data + i));
         }
 
-        for (size_t i = Stack->Size; i < Stack->capacity; i++){
+        for (size_t i = (array_of_stack[descryptor]).Size; i < (array_of_stack[descryptor]).capacity; i++){
 
-            fprintf(LOG_FILE," \t\t [%lu] = " OUTPUT_PARAMETR " (POISON)\n", i, *(Stack->data + i));
+            fprintf(LOG_FILE," \t\t [%lu] = " OUTPUT_PARAMETR " (POISON)\n", i, *((array_of_stack[descryptor]).data + i));
         }
 
         fprintf(LOG_FILE, "\t}\n");
@@ -296,26 +404,26 @@ static statuses stack_dump (struct my_stack* Stack, const char* curr_file, const
 }
 
 
-static void clean_right_data (struct my_stack* Stack){
+static void clean_right_data (int descryptor){
 
-    for (size_t i = (Stack->capacity)/2; i < Stack->capacity; i++){
+    for (size_t i = ((array_of_stack[descryptor]).capacity)/2; i < (array_of_stack[descryptor]).capacity; i++){
 
-        Stack->data[i] = POIZON_VALUE;
+        (array_of_stack[descryptor]).data[i] = POIZON_VALUE;
     }
 }
 
 
-static void rehash_stack_and_data (struct my_stack* Stack){
+static void rehash_stack_and_data (int descryptor){
 
-    assert(Stack != nullptr);
+    main_hashes.hash_data  = hash_djb2((char*) (array_of_stack[index_stack]).data-sizeof(canary_t), sizeof(canary_t)*2+Stack->capacity*(sizeof(elem_t)));
 
-    main_hashes.hash_data = hash_djb2((char*) Stack->data-sizeof(canary_t), sizeof(canary_t)*2+Stack->capacity*(sizeof(elem_t)));
-
-    main_hashes.hash_stack = hash_djb2((char*) Stack, sizeof(*Stack));
+    main_hashes.hash_stack = hash_djb2((char*) array_of_stack[index_stack], sizeof(my_stack));
 }
 
 
 static unsigned int hash_djb2 (const char* hashable, size_t size_hashable){
+
+    assert(hashable != nullptr);
 
     unsigned int hash_t = 5381;
 
@@ -332,83 +440,86 @@ static unsigned int hash_djb2 (const char* hashable, size_t size_hashable){
 }
 
 
-static statuses set_default_data_poizon (struct my_stack* Stack){
+static statuses set_default_data_poizon (int descryptor){
+
+    assert(Stack != nullptr);
 
     for (size_t i = 0; i < DEFAULT_STACK_SIZE; i++){
 
-        Stack->data[i] = POIZON_VALUE;
+        (array_of_stack[descryptor]).data[i] = POIZON_VALUE;
     }
 
     return SUCCESS;
 }
 
-static statuses stack_reallocation (struct my_stack* Stack, const int parametr){
+static statuses stack_reallocation (int descryptor, const int parametr){
+
+    assert(Stack != nullptr);
 
     if (parametr){
 
-        Stack->capacity *= RE_SIZING;
+        (array_of_stack[descryptor]).capacity *= RE_SIZING;
 
         #ifdef CANARY
 
-        elem_t* data1 = (elem_t*) realloc((char*) Stack->data - sizeof(canary_t), Stack->capacity * sizeof(elem_t) + sizeof(canary_t)*2);
+        elem_t* data1 = (elem_t*) realloc((char*) (array_of_stack[descryptor]).data - sizeof(canary_t), (array_of_stack[descryptor]).capacity * sizeof(elem_t) + sizeof(canary_t)*2);
 
         if (data1 == nullptr){
 
             return NO_MEMORY;
         }
 
-        Stack->data = (elem_t*) ((char*) data1 + sizeof(canary_t));
+        (array_of_stack[descryptor]).data = (elem_t*) ((char*) data1 + sizeof(canary_t));
 
-        *(canary_t*)((char*) Stack->data + Stack->capacity * sizeof(elem_t)) = DEFAULT_CANARY_VALUE;
+        *(canary_t*)((char*) (array_of_stack[descryptor]).data + (array_of_stack[descryptor]).capacity * sizeof(elem_t)) = DEFAULT_CANARY_VALUE;
 
         #else
 
-        elem_t* data_backup = (elem_t*) realloc(Stack->data, Stack->capacity * sizeof(elem_t));
+        elem_t* data_backup = (elem_t*) realloc((array_of_stack[descryptor]).data, (array_of_stack[descryptor]).capacity * sizeof(elem_t));
 
         if (data_backup == nullptr){
 
             return NO_MEMORY;
         }
 
-        Stack->data = data_backup;
+        (array_of_stack[descryptor]).data = data_backup;
 
         #endif
 
-        clean_right_data (Stack);
+        clean_right_data (descryptor);
 
         return SUCCESS;
     }
 
     else {
 
+        (array_of_stack[descryptor]).capacity = ((array_of_stack[descryptor]).capacity)/4;
+
         #ifdef CANARY
 
-        elem_t* data1 = (elem_t*) realloc((char*) Stack->data - sizeof(canary_t), ((Stack->capacity)/4) * sizeof(elem_t) + sizeof(canary_t)*2);
+        elem_t* data1 = (elem_t*) realloc((char*) (array_of_stack[descryptor]).data - sizeof(canary_t), (array_of_stack[descryptor]).capacity * sizeof(elem_t) + sizeof(canary_t)*2);
 
         if (data1 == nullptr){
 
             return NO_MEMORY;
         }
 
-        Stack->data = (elem_t*) ((char*) data1 + sizeof(canary_t));
+        (array_of_stack[descryptor]).data = (elem_t*) ((char*) data1 + sizeof(canary_t));
 
-        *(canary_t*)((char*) Stack->data + Stack->capacity * sizeof(elem_t)) = DEFAULT_CANARY_VALUE;
+        *(canary_t*)((char*) (array_of_stack[descryptor]).data + Stack->capacity * sizeof(elem_t)) = DEFAULT_CANARY_VALUE;
 
         #else
 
-
-        elem_t* data_backup = (elem_t*) realloc(Stack->data, ((Stack->capacity)/4) * sizeof(elem_t));
+        elem_t* data_backup = (elem_t*) realloc((array_of_stack[descryptor]).data, Stack->capacity * sizeof(elem_t));
 
         if (data_backup == nullptr){
 
             return NO_MEMORY;
         }
 
-        Stack->data = data_backup;
+        (array_of_stack[descryptor]).data = data_backup;
 
         #endif
-
-        Stack->capacity = (Stack->capacity)/4;
 
         return SUCCESS;
     }

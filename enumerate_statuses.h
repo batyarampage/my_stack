@@ -7,7 +7,8 @@ enum statuses {
     ERROR = -1,
     STACK_WAS_INITIALIZED_BEFORE = -3,
     NO_MEMORY = -5,
-    SIZE = 7
+    SIZE = 7,
+    NOT_DESCRYPTOR_EXISTS = 9
 };
 
 enum statuses_stack_ok {
