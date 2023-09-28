@@ -3,6 +3,7 @@
 #include "struct_of_stack.h"
 #include "typedefine.h"
 #include "consts.h"
+#include <stdio.h>
 
 #define STACK_DUMP(stack) stack_dump((stack), __FILE__, __LINE__, __func__)
 #define STACK_OK(stack) if (stack_ok(stack) != SUCCESS_STACK) { STACK_DUMP(stack);}
@@ -66,8 +67,6 @@ void inicialase_stack_descpryptor (){
 
         array_of_descryptor[i] = DEDAULT_VALUE_DESCRYPTOR_ARRAY;
     }
-
-    resize_stack_descpryptor ();
 }
 
 static void resize_stack_descpryptor (){
@@ -151,7 +150,7 @@ statuses stack_ctor (int descryptor, const char* name_stack, int number_line,
 
     set_default_data_poizon (index_stack);
 
-    array_of_descryptor[index_stack] = descryptor;
+    array_of_descryptor[index_stack]             = descryptor;
 
     (array_of_stack[index_stack]).Size           = 0;
     (array_of_stack[index_stack]).capacity       = DEFAULT_STACK_SIZE;
@@ -168,8 +167,6 @@ statuses stack_ctor (int descryptor, const char* name_stack, int number_line,
     #endif
 
     //STACK_OK (Stack);
-
-    printf("ok push\n");
 
     return SUCCESS;
 }
@@ -192,9 +189,9 @@ statuses stack_push (int descryptor, elem_t value){
         stack_reallocation(index_stack, UP);
     }
 
-    *((array_of_stack[descryptor]).data + (array_of_stack[descryptor]).Size) = value;
+    (array_of_stack[index_stack]).data[(array_of_stack[index_stack]).Size] = value;
 
-    ((array_of_stack[descryptor]).Size)++;
+    ((array_of_stack[index_stack]).Size)++;
 
     #ifdef HASH_PROTECTION
 
@@ -203,8 +200,6 @@ statuses stack_push (int descryptor, elem_t value){
     #endif
 
     //STACK_OK (Stack);
-
-    printf("ok pop\n");
 
     return SUCCESS;
 }
@@ -221,13 +216,13 @@ statuses stack_pop (int descryptor, elem_t* value){
         return NOT_DESCRYPTOR_EXISTS;
     }
 
-    if (((array_of_stack[descryptor]).Size) >= 1){
+    if (((array_of_stack[index_stack]).Size) >= 1){
 
-        ((array_of_stack[descryptor]).Size)--;
+        ((array_of_stack[index_stack]).Size)--;
 
-        *value = *((array_of_stack[descryptor]).data + (array_of_stack[descryptor]).Size);
+        *value = *((array_of_stack[index_stack]).data + (array_of_stack[index_stack]).Size);
 
-        *((array_of_stack[descryptor]).data + (array_of_stack[descryptor]).Size) = POIZON_VALUE;
+        *((array_of_stack[index_stack]).data + (array_of_stack[index_stack]).Size) = POIZON_VALUE;
     }
 
     else {
@@ -235,14 +230,14 @@ statuses stack_pop (int descryptor, elem_t* value){
         return ERROR;
     }
 
-    if (((((array_of_stack[descryptor]).capacity)/4) > (array_of_stack[descryptor]).Size) && ((array_of_stack[descryptor]).Size != 0)){
+    if (((((array_of_stack[index_stack]).capacity)/4) > (array_of_stack[index_stack]).Size) && ((array_of_stack[index_stack]).Size != 0)){
 
-        stack_reallocation(descryptor, DOWN);
+        stack_reallocation(index_stack, DOWN);
     }
 
     #ifdef HASH_PROTECTION
 
-    rehash_stack_and_data (descryptor);
+    rehash_stack_and_data (index_stack);
 
     #endif
 

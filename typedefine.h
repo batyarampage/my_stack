@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef long long int elem_t;/// if you use char type, you must change poizon value to char
+typedef int elem_t;/// if you use char type, you must change poizon value to char
 
 typedef long long int canary_t;
 

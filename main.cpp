@@ -22,13 +22,13 @@ int main (){
 
     inicialase_stack_descpryptor ();
 
-    int a = 1;
+    int a = 3;
 
     printf("aboba1\n");
 
     STACK_CTOR(a);
 
-    for (size_t i = 0; i < 100; i++){
+    for (int i = 0; i < 100; i++){
 
         stack_push(a, i);
     }
@@ -37,11 +37,11 @@ int main (){
 
     for (size_t i = 0; i < 100; i++){
 
-        long long int param = 0;
+        int param = 0;
 
         stack_pop(a, &param);
 
-        printf("%lld \n", param);
+        printf("%d \n", param);
 
     }
 
