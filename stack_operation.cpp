@@ -39,6 +39,14 @@ static void close_log_file ();
 
 static void clean_calloc_with_default ();
 
+static bool search_for_free_space_in_descr_array (int* index_stack);
+
+static void free_descryptor_array ();
+
+static void free_stack_array ();
+
+static void free_array_of_hashes ();
+
 
 
 
@@ -110,6 +118,29 @@ void inicialase_stack_descpryptor (){
     clean_calloc_with_default ();
 }
 
+void free_stack_descpryptor (){
+
+    free_descryptor_array ();
+    free_stack_array ();
+    free_array_of_hashes ();
+
+}
+
+static void free_descryptor_array (){
+
+    free(array_of_descryptor);
+}
+
+static void free_stack_array (){
+
+    free(array_of_stack);
+}
+
+static void free_array_of_hashes (){
+
+    free(array_of_hashes);
+}
+
 static void clean_calloc_with_default (){
 
     for (int i = 0; i < lenght_of_array; i++){
@@ -158,22 +189,43 @@ static bool descryptor_in_array (int* index_stack, int descryptor){
     return false;
 }
 
+
+static bool search_for_free_space_in_descr_array (int* index_stack){
+
+    for (int i = 0; i < lenght_of_array; i++){
+
+        if (array_of_descryptor[i] == DEDAULT_VALUE_DESCRYPTOR_ARRAY){
+
+            *index_stack = i;
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
 statuses stack_ctor (int descryptor, const char* name_stack, int number_line,
                      const char* name_func, const char* name_file){
 
-    int index_stack = 0;
+    int ind = 0;
 
-    if (descryptor_in_array(&index_stack, descryptor)){
+    if (descryptor_in_array(&ind, descryptor)){
 
         return STACK_WAS_INITIALIZED_BEFORE;
     }
 
     count_of_active_stack++;
 
-    if (count_of_active_stack > lenght_of_array){
+    if (count_of_active_stack >= lenght_of_array){
 
         resize_stack_descpryptor ();
     }
+
+    int index_array = 0;
+
+    search_for_free_space_in_descr_array (&index_array);
 
     #ifdef CANARY
 
@@ -189,11 +241,11 @@ statuses stack_ctor (int descryptor, const char* name_stack, int number_line,
 
     set_canaries (left_data_canary, right_data_canary);
 
-    set_canaries (&((array_of_stack[index_stack]).left_canary), &((array_of_stack[index_stack]).right_canary));
+    set_canaries (&((array_of_stack[index_array]).left_canary), &((array_of_stack[index_array]).right_canary));
 
     elem_t* first_data = (elem_t*)((char*) data_of_Stack + sizeof(canary_t));
 
-    (array_of_stack[index_stack]).data = first_data;
+    (array_of_stack[index_array]).data = first_data;
 
     #else
 
@@ -204,29 +256,29 @@ statuses stack_ctor (int descryptor, const char* name_stack, int number_line,
         return NO_MEMORY;
     }
 
-    (array_of_stack[index_stack]).data = data_of_Stack;
+    (array_of_stack[index_array]).data = data_of_Stack;
 
     #endif
 
-    set_default_data_poizon (index_stack);
+    set_default_data_poizon (index_array);
 
-    array_of_descryptor[index_stack]             = descryptor;
+    array_of_descryptor[index_array]             = descryptor;
 
-    (array_of_stack[index_stack]).Size           = 0;
-    (array_of_stack[index_stack]).capacity       = DEFAULT_STACK_SIZE;
-    (array_of_stack[index_stack]).status         = IS_INITIALIZED;
-    (array_of_stack[index_stack]).name_of_stack  = name_stack;
-    (array_of_stack[index_stack]).name_of_func   = name_func;
-    (array_of_stack[index_stack]).count_of_line  = number_line;
-    (array_of_stack[index_stack]).file           = name_file;
+    (array_of_stack[index_array]).Size           = 0;
+    (array_of_stack[index_array]).capacity       = DEFAULT_STACK_SIZE;
+    (array_of_stack[index_array]).status         = IS_INITIALIZED;
+    (array_of_stack[index_array]).name_of_stack  = name_stack;
+    (array_of_stack[index_array]).name_of_func   = name_func;
+    (array_of_stack[index_array]).count_of_line  = number_line;
+    (array_of_stack[index_array]).file           = name_file;
 
     #ifdef HASH_PROTECTION
 
-    rehash_stack_and_data (index_stack);
+    rehash_stack_and_data (index_array);
 
     #endif
 
-    STACK_OK (index_stack);
+    STACK_OK (index_array);
 
     return SUCCESS;
 }
@@ -275,19 +327,11 @@ statuses stack_pop (int descryptor, elem_t* value){
 
     STACK_OK (index_stack);
 
-    if (((array_of_stack[index_stack]).Size) >= 1){
+    ((array_of_stack[index_stack]).Size)--;
 
-        ((array_of_stack[index_stack]).Size)--;
+    *value = *((array_of_stack[index_stack]).data + (array_of_stack[index_stack]).Size);
 
-        *value = *((array_of_stack[index_stack]).data + (array_of_stack[index_stack]).Size);
-
-        *((array_of_stack[index_stack]).data + (array_of_stack[index_stack]).Size) = POIZON_VALUE;
-    }
-
-    else {
-
-        return ERROR;
-    }
+    *((array_of_stack[index_stack]).data + (array_of_stack[index_stack]).Size) = POIZON_VALUE;
 
     if (((((array_of_stack[index_stack]).capacity)/4) > (array_of_stack[index_stack]).Size) && ((array_of_stack[index_stack]).Size != 0)){
 

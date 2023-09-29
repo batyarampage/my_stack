@@ -23,6 +23,8 @@ statuses stack_dtor (int descryptor);
 
 void inicialase_stack_descpryptor ();
 
+void free_stack_descpryptor ();
+
 void log_start ();
 
 void log_end ();

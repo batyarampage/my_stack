@@ -23,6 +23,8 @@ int main (){
 
     int a = 3;
 
+    int b = 5;
+
     printf("aboba1\n");
 
     STACK_CTOR(a);
