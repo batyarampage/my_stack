@@ -11,13 +11,13 @@
 
 static void set_canaries (canary_t* left_canary, canary_t* right_canary);
 
-static statuses_stack_ok stack_ok (struct my_stack* Stack);
+static statuses_stack_ok stack_ok (int descryptor);
 
-static statuses stack_dump (struct my_stack* Stack, const char* curr_file, const int curr_line, const char* curr_func);
+static statuses stack_dump (int descryptor, const char* curr_file, const int curr_line, const char* curr_func);
 
 static void clean_right_data (int descryptor);
 
-static void rehash_stack_and_data (struct my_stack* Stack);
+static void rehash_stack_and_data (int descryptor);
 
 static unsigned int hash_djb2 (const char* hashable, size_t size_hashable);
 
@@ -31,10 +31,14 @@ static void inicialse_stack_array ();
 
 static void resize_stack_descpryptor ();
 
+static void inicialse_array_of_hashes ();
+
+static void open_log_file ();
+
+static void close_log_file ();
 
 
 
-//static hashes main_hashes = {};
 
 static int lenght_of_array = 2;
 
@@ -46,6 +50,38 @@ static my_stack* array_of_stack = nullptr;
 
 static int* array_of_descryptor = nullptr;
 
+static hashes* array_of_hashes = nullptr;
+
+static FILE* LOG_FILE = nullptr;
+
+
+
+
+static void open_log_file (){
+
+    LOG_FILE = fopen("logs.txt", "a+");
+
+    assert(LOG_FILE != nullptr);
+
+    fprintf(LOG_FILE, "logs is begun\n\n");
+}
+
+static void close_log_file (){
+
+    fprintf(LOG_FILE, "logs was end\n");
+
+    fclose(LOG_FILE);
+}
+
+void log_start (){
+
+    open_log_file ();
+}
+
+void log_end (){
+
+    close_log_file ();
+}
 
 static void inicialase_descryptor_array (){
 
@@ -57,17 +93,24 @@ static void inicialse_stack_array (){
     array_of_stack = (my_stack*) calloc(lenght_of_array, sizeof(my_stack));
 }
 
+static void inicialse_array_of_hashes (){
 
-void inicialase_stack_descpryptor (){
+    array_of_hashes = (hashes*) calloc(lenght_of_array, sizeof(hashes));
+}
+
+
+void inicialase_stack_descpryptor (){//TODO проверки
 
     inicialase_descryptor_array ();
     inicialse_stack_array ();
+    inicialse_array_of_hashes ();
 
     for (int i = 0; i < lenght_of_array; i++){
 
         array_of_descryptor[i] = DEDAULT_VALUE_DESCRYPTOR_ARRAY;
     }
 }
+
 
 static void resize_stack_descpryptor (){
 
@@ -76,6 +119,8 @@ static void resize_stack_descpryptor (){
     array_of_descryptor = (int*) realloc(array_of_descryptor, sizeof(int)*lenght_of_array);
 
     array_of_stack = (my_stack*) realloc(array_of_stack, sizeof(my_stack)*lenght_of_array);
+
+    array_of_hashes = (hashes*)  realloc(array_of_hashes, sizeof(hashes)*lenght_of_array);
 
     for (int i = lenght_of_array/2; i < lenght_of_array; i++){
 
@@ -166,15 +211,13 @@ statuses stack_ctor (int descryptor, const char* name_stack, int number_line,
 
     #endif
 
-    //STACK_OK (Stack);
+    STACK_OK (index_stack);
 
     return SUCCESS;
 }
 
 
 statuses stack_push (int descryptor, elem_t value){
-
-    //STACK_OK (Stack);
 
     int index_stack = 0;
 
@@ -183,6 +226,7 @@ statuses stack_push (int descryptor, elem_t value){
         return NOT_DESCRYPTOR_EXISTS;
     }
 
+    STACK_OK (index_stack);
 
     if ((array_of_stack[index_stack]).Size == (array_of_stack[index_stack]).capacity - 1){
 
@@ -195,11 +239,11 @@ statuses stack_push (int descryptor, elem_t value){
 
     #ifdef HASH_PROTECTION
 
-    rehash_stack_and_data (descryptor);
+    rehash_stack_and_data (index_stack);
 
     #endif
 
-    //STACK_OK (Stack);
+    STACK_OK (index_stack);
 
     return SUCCESS;
 }
@@ -207,14 +251,14 @@ statuses stack_push (int descryptor, elem_t value){
 
 statuses stack_pop (int descryptor, elem_t* value){
 
-    //STACK_OK (Stack);
-
     int index_stack = 0;
 
     if (!(descryptor_in_array(&index_stack, descryptor))){
 
         return NOT_DESCRYPTOR_EXISTS;
     }
+
+    STACK_OK (index_stack);
 
     if (((array_of_stack[index_stack]).Size) >= 1){
 
@@ -241,7 +285,7 @@ statuses stack_pop (int descryptor, elem_t* value){
 
     #endif
 
-    //STACK_OK (Stack);
+    STACK_OK (index_stack);
 
     return SUCCESS;
 }
@@ -249,14 +293,14 @@ statuses stack_pop (int descryptor, elem_t* value){
 
 statuses stack_dtor (int descryptor){
 
-    //STACK_OK (Stack);
-
     int index_stack = 0;
 
     if (!(descryptor_in_array(&index_stack, descryptor))){
 
         return NOT_DESCRYPTOR_EXISTS;
     }
+
+    STACK_OK (index_stack);
 
     #ifdef CANARY
 
@@ -289,37 +333,32 @@ static void set_canaries (canary_t* left_canary, canary_t* right_canary){
 }
 
 
-/*static statuses_stack_ok stack_ok (struct my_stack* Stack){
+static statuses_stack_ok stack_ok (int descryptor){
 
-    if (Stack == nullptr){
-
-        return INCORRECT_STACK;
-    }
-
-    if (Stack->data == nullptr){
+    if ((array_of_stack[descryptor]).data == nullptr){
 
         return INCORRECT_DATA;
     }
 
-    if ((Stack->capacity) < (Stack->Size)){
+    if (((array_of_stack[descryptor]).capacity) < ((array_of_stack[descryptor]).Size)){
 
         return INCORRECT_DIFF_SIZE_CAPACITY;
     }
 
-    if ((Stack->capacity) == 0){
+    if (((array_of_stack[descryptor]).capacity) == 0){
 
         return INCORRECT_CAPACITY;
     }
 
     #ifdef CANARY
 
-    if (((Stack->left_canary) != DEFAULT_CANARY_VALUE) || ((Stack->right_canary) != DEFAULT_CANARY_VALUE)){
+    if ((((array_of_stack[descryptor]).left_canary) != DEFAULT_CANARY_VALUE) || (((array_of_stack[descryptor]).right_canary) != DEFAULT_CANARY_VALUE)){
 
         return INCORRECT_CANARY;
     }
 
-    canary_t* left_data_canary  = (canary_t*)(Stack->data - 1);
-    canary_t* right_data_canary = (canary_t*)(Stack->data + Stack->capacity);
+    canary_t* left_data_canary  = (canary_t*)((array_of_stack[descryptor]).data - 1);
+    canary_t* right_data_canary = (canary_t*)((array_of_stack[descryptor]).data + (array_of_stack[descryptor]).capacity);//TODO внимание
 
     assert(left_data_canary  != nullptr);
     assert(right_data_canary != nullptr);
@@ -333,16 +372,16 @@ static void set_canaries (canary_t* left_canary, canary_t* right_canary){
 
     #ifdef HASH_PROTECTION
 
-    unsigned int hash_stack_now = hash_djb2((char*) Stack, sizeof(*Stack));
+    unsigned int hash_stack_now = hash_djb2((char*) &(array_of_stack[descryptor]), sizeof(my_stack));
 
-    if (main_hashes.hash_stack != hash_stack_now){
+    if ((array_of_hashes[descryptor]).hash_stack != hash_stack_now){
 
         return INCORRECT_HASH;
     }
 
-    unsigned int hash_data_now = hash_djb2((char*) Stack->data-sizeof(canary_t), sizeof(canary_t)*2+Stack->capacity*(sizeof(elem_t)));
+    unsigned int hash_data_now = hash_djb2((char*) (array_of_stack[descryptor]).data-sizeof(canary_t), sizeof(canary_t)*2+(array_of_stack[descryptor]).capacity*(sizeof(elem_t)));
 
-    if (hash_data_now != main_hashes.hash_data){
+    if (hash_data_now == (array_of_hashes[descryptor]).hash_data){
 
         return INCORRECT_HASH;
     }
@@ -350,62 +389,55 @@ static void set_canaries (canary_t* left_canary, canary_t* right_canary){
     #endif
 
     return SUCCESS_STACK;
-} */
+}
 
 
-/*static statuses stack_dump (struct my_stack* Stack, const char* curr_file, const int curr_line, const char* curr_func){
+static statuses stack_dump (int descryptor, const char* curr_file, const int curr_line, const char* curr_func){
 
     assert(curr_file != nullptr);
     assert(curr_func != nullptr);
 
-    if (Stack == nullptr){
+    fprintf(LOG_FILE, "stack %s from %s (%d) %s\n", (array_of_stack[descryptor]).name_of_stack, (array_of_stack[descryptor]).file, (array_of_stack[descryptor]).count_of_line,
+            (array_of_stack[descryptor]).name_of_func);
 
-        fprintf(LOG_FILE, "ERROR, pointer on Stack is nullptr\n");
+    fprintf(LOG_FILE, "called from %s (%d) %s\n{\n", curr_file, curr_line, curr_func);
+
+    #ifdef CANARY
+
+    fprintf(LOG_FILE, "\tleft stack canary: %lld \n \tright stack canary: %lld \n\n \tleft data canary: %lld \n \tright data canary: %lld \n\n",
+            (array_of_stack[descryptor]).left_canary, (array_of_stack[descryptor]).right_canary,*(canary_t*)((char*) (array_of_stack[descryptor]).data - sizeof(canary_t)),
+            *(canary_t*)((char*)(array_of_stack[descryptor]).data + (array_of_stack[descryptor]).capacity*sizeof(elem_t)));
+    #endif
+
+    fprintf(LOG_FILE, "\tsize = %u\n \tcapacity = %u\n \tdata[%p]\n\n",
+                        (array_of_stack[descryptor]).Size, (array_of_stack[descryptor]).capacity, (array_of_stack[descryptor]).data);
+
+    #ifdef HASH_PROTECTION
+
+    fprintf(LOG_FILE, "\tStack_hash = %u\n \tData_hash  = %u \n\n",
+                        (array_of_hashes[descryptor]).hash_stack, (array_of_hashes[descryptor]).hash_data);
+
+    #endif
+
+    fprintf(LOG_FILE, "\t{\n");
+
+    for (size_t i = 0; i < (array_of_stack[descryptor]).Size; i++){
+
+        fprintf(LOG_FILE,"\t\t*[%lu] = " OUTPUT_PARAMETR " \n", i, (array_of_stack[descryptor]).data[i]);
     }
 
-    else {
+    for (size_t i = (array_of_stack[descryptor]).Size; i < (array_of_stack[descryptor]).capacity; i++){
 
-        fprintf(LOG_FILE, "stack[%p] %s from %s (%d) %s\n", Stack, Stack->name_of_stack, Stack->file, Stack->count_of_line,
-                Stack->name_of_func);
-
-        fprintf(LOG_FILE, "called from %s (%d) %s\n{\n", curr_file, curr_line, curr_func);
-
-        #ifdef CANARY
-
-        fprintf(LOG_FILE, "\tleft stack canary: %lld \n \tright stack canary: %lld \n\n \tleft data canary: %lld \n \tright data canary: %lld \n\n",
-                Stack->left_canary, Stack->right_canary,*(canary_t*)((char*) Stack->data - sizeof(canary_t)),
-                *(canary_t*)((char*)Stack->data + Stack->capacity*sizeof(elem_t)));
-        #endif
-
-        fprintf(LOG_FILE, "\tsize = %u\n \tcapacity = %u\n \tdata[%p]\n\n",
-                            Stack->Size, Stack->capacity, Stack->data);
-
-        #ifdef HASH_PROTECTION
-
-        fprintf(LOG_FILE, "\tStack_hash = %u\n \tData_hash  = %u \n\n",
-                            main_hashes.hash_stack, main_hashes.hash_data);
-
-        #endif
-
-        fprintf(LOG_FILE, "\t{\n");
-
-        for (size_t i = 0; i < (array_of_stack[descryptor]).Size; i++){
-
-            fprintf(LOG_FILE,"\t\t*[%lu] = " OUTPUT_PARAMETR " \n", i, *((array_of_stack[descryptor]).data + i));
-        }
-
-        for (size_t i = (array_of_stack[descryptor]).Size; i < (array_of_stack[descryptor]).capacity; i++){
-
-            fprintf(LOG_FILE," \t\t [%lu] = " OUTPUT_PARAMETR " (POISON)\n", i, *((array_of_stack[descryptor]).data + i));
-        }
-
-        fprintf(LOG_FILE, "\t}\n");
-
-        fprintf(LOG_FILE, "}\n\n\n\n");
+        fprintf(LOG_FILE," \t\t [%lu] = " OUTPUT_PARAMETR " (POISON)\n", i, (array_of_stack[descryptor]).data[i]);
     }
+
+    fprintf(LOG_FILE, "\t}\n");
+
+    fprintf(LOG_FILE, "}\n\n\n\n");
+
 
     return SUCCESS;
-} */
+}
 
 
 static void clean_right_data (int descryptor){
@@ -416,13 +448,13 @@ static void clean_right_data (int descryptor){
     }
 }
 
- /*
+
 static void rehash_stack_and_data (int descryptor){
 
-    main_hashes.hash_data  = hash_djb2((char*) (array_of_stack[descryptor]).data-sizeof(canary_t), sizeof(canary_t)*2+Stack->capacity*(sizeof(elem_t)));
+    (array_of_hashes[descryptor]).hash_data  = hash_djb2((char*) (array_of_stack[descryptor]).data-sizeof(canary_t), sizeof(canary_t)*2+(array_of_stack[descryptor]).capacity*(sizeof(elem_t)));
 
-    main_hashes.hash_stack = hash_djb2((char*) array_of_stack[descryptor], sizeof(my_stack));
-} */
+    (array_of_hashes[descryptor]).hash_stack = hash_djb2((char*) &(array_of_stack[descryptor]), sizeof(my_stack));
+}
 
 
 static unsigned int hash_djb2 (const char* hashable, size_t size_hashable){

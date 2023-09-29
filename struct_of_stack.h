@@ -7,7 +7,11 @@
 
 struct my_stack {
 
+    #ifdef CANARY
+
     canary_t left_canary;
+
+    #endif
 
     size_t capacity;
 
@@ -25,7 +29,11 @@ struct my_stack {
 
     enum conddition_stack status;
 
+    #ifdef CANARY
+
     canary_t right_canary;
+
+    #endif
 };
 
 struct hashes {
