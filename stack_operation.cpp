@@ -325,11 +325,19 @@ statuses stack_pop (int descryptor, elem_t* value){
         return NOT_DESCRYPTOR_EXISTS;
     }
 
-    STACK_OK (index_stack);
+    if (((array_of_stack[index_stack]).Size) >= 1){
 
-    ((array_of_stack[index_stack]).Size)--;
+        ((array_of_stack[index_stack]).Size)--;
 
-    *value = *((array_of_stack[index_stack]).data + (array_of_stack[index_stack]).Size);
+        *value = *((array_of_stack[index_stack]).data + (array_of_stack[index_stack]).Size);
+
+        *((array_of_stack[index_stack]).data + (array_of_stack[index_stack]).Size) = POIZON_VALUE;
+    }
+
+    else {
+
+        return ERROR;
+    }
 
     *((array_of_stack[index_stack]).data + (array_of_stack[index_stack]).Size) = POIZON_VALUE;
 
@@ -404,6 +412,11 @@ static statuses_stack_ok stack_ok (int descryptor){
         return INCORRECT_DIFF_SIZE_CAPACITY;
     }
 
+    if ((((array_of_stack[descryptor]).capacity) == DEFAULT_STACK_SIZE) && (((array_of_stack[descryptor]).Size) == 0)){
+
+        return INCORRECT_SIZES;
+    }
+
     if (((array_of_stack[descryptor]).capacity) == 0){
 
         return INCORRECT_CAPACITY;
@@ -440,7 +453,7 @@ static statuses_stack_ok stack_ok (int descryptor){
 
     unsigned int hash_data_now = hash_djb2((char*) (array_of_stack[descryptor]).data-sizeof(canary_t), sizeof(canary_t)*2+(array_of_stack[descryptor]).capacity*(sizeof(elem_t)));
 
-    if (hash_data_now == (array_of_hashes[descryptor]).hash_data){
+    if (hash_data_now != (array_of_hashes[descryptor]).hash_data){
 
         return INCORRECT_HASH;
     }

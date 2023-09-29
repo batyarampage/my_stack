@@ -20,7 +20,8 @@ enum statuses_stack_ok {
     INCORRECT_DATA               = 4,
     INCORRECT_CANARY             = 6,
     INCORRECT_HASH               = 7,
-    SUCCESS_STACK                = 5
+    SUCCESS_STACK                = 5,
+    INCORRECT_SIZES              = 9
 };
 
 enum conddition_stack {

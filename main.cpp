@@ -21,32 +21,29 @@ int main (){
 
     inicialase_stack_descpryptor ();
 
-    int a = 3;
+    int a = -22;
 
-    int b = 5;
+    elem_t rez = 0;
 
     printf("aboba1\n");
 
     STACK_CTOR(a);
 
-    for (int i = 0; i < 100; i++){
+    stack_push(a, 'o');
 
-        stack_push(a, i);
-    }
+    stack_push(a, 'n');
 
-    printf("aboba\n");
+    stack_pop(a, &rez);
 
-    for (size_t i = 0; i < 100; i++){
+    printf(OUTPUT_PARAMETR, rez);
 
-        int param = 0;
+    stack_pop(a, &rez);
 
-        stack_pop(a, &param);
-
-        printf("%d \n", param);
-
-    }
+    printf(OUTPUT_PARAMETR, rez);
 
     stack_dtor(a);
+
+    free_stack_descpryptor ();
 
     log_end ();
 
