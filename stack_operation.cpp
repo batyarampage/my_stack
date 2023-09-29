@@ -37,6 +37,8 @@ static void open_log_file ();
 
 static void close_log_file ();
 
+static void clean_calloc_with_default ();
+
 
 
 
@@ -50,9 +52,9 @@ static my_stack* array_of_stack = nullptr;
 
 static int* array_of_descryptor = nullptr;
 
-static hashes* array_of_hashes = nullptr;
+static hashes* array_of_hashes  = nullptr;
 
-static FILE* LOG_FILE = nullptr;
+static FILE* LOG_FILE           = nullptr;
 
 
 
@@ -99,11 +101,16 @@ static void inicialse_array_of_hashes (){
 }
 
 
-void inicialase_stack_descpryptor (){//TODO проверки
+void inicialase_stack_descpryptor (){
 
     inicialase_descryptor_array ();
     inicialse_stack_array ();
     inicialse_array_of_hashes ();
+
+    clean_calloc_with_default ();
+}
+
+static void clean_calloc_with_default (){
 
     for (int i = 0; i < lenght_of_array; i++){
 
@@ -366,7 +373,7 @@ static statuses_stack_ok stack_ok (int descryptor){
     }
 
     canary_t* left_data_canary  = (canary_t*)((array_of_stack[descryptor]).data - 1);
-    canary_t* right_data_canary = (canary_t*)((array_of_stack[descryptor]).data + (array_of_stack[descryptor]).capacity);//TODO внимание
+    canary_t* right_data_canary = (canary_t*)((array_of_stack[descryptor]).data + (array_of_stack[descryptor]).capacity);
 
     assert(left_data_canary  != nullptr);
     assert(right_data_canary != nullptr);
@@ -431,12 +438,12 @@ static statuses stack_dump (int descryptor, const char* curr_file, const int cur
 
     for (size_t i = 0; i < (array_of_stack[descryptor]).Size; i++){
 
-        fprintf(LOG_FILE,"\t\t*[%lu] = " OUTPUT_PARAMETR " \n", i, (array_of_stack[descryptor]).data[i]);
+        fprintf(LOG_FILE,"\t\t*[%u] = " OUTPUT_PARAMETR " \n", i, (array_of_stack[descryptor]).data[i]);
     }
 
     for (size_t i = (array_of_stack[descryptor]).Size; i < (array_of_stack[descryptor]).capacity; i++){
 
-        fprintf(LOG_FILE," \t\t [%lu] = " OUTPUT_PARAMETR " (POISON)\n", i, (array_of_stack[descryptor]).data[i]);
+        fprintf(LOG_FILE," \t\t [%u] = " OUTPUT_PARAMETR " (POISON)\n", i, (array_of_stack[descryptor]).data[i]);
     }
 
     fprintf(LOG_FILE, "\t}\n");
