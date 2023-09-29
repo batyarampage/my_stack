@@ -13,5 +13,6 @@ const elem_t POIZON_VALUE = 91919; ///
 #define CANARY  /// to enable canary protection
 #define HASH_PROTECTION/// to enable hash_protection
 #define OUTPUT_PARAMETR "%lld" /// you must connect type of output with typeof elem_t
+#define INCREMENT_DYNAMIC
 
 #endif

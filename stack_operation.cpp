@@ -114,13 +114,21 @@ void inicialase_stack_descpryptor (){//TODO проверки
 
 static void resize_stack_descpryptor (){
 
+    #ifdef INCREMENT_DYNAMIC
+
+    lenght_of_array++;
+
+    #else
+
     lenght_of_array *= 2;
+
+    #endif
 
     array_of_descryptor = (int*) realloc(array_of_descryptor, sizeof(int)*lenght_of_array);
 
     array_of_stack = (my_stack*) realloc(array_of_stack, sizeof(my_stack)*lenght_of_array);
 
-    array_of_hashes = (hashes*)  realloc(array_of_hashes, sizeof(hashes)*lenght_of_array);
+    array_of_hashes = (hashes*)  realloc(array_of_hashes,  sizeof(hashes)*lenght_of_array);
 
     for (int i = lenght_of_array/2; i < lenght_of_array; i++){
 
